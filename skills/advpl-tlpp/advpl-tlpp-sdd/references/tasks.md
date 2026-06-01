@@ -82,13 +82,12 @@ Before showing tasks to the user, run ALL three pre-approval checks:
 
 **Check 3: Test Co-location Validation** — verify every task's `Tests` field matches the TESTING.md coverage matrix.
 
-### 6. ASK About MCPs and Skills
+### 6. ASK About Skills
 
 **CRITICAL**: Before execution, ask the user:
 
 > "For each task, which tools should I use?"
 >
-> **Available MCPs:** [list from project or user]
 > **Available skills:** [list from project or user — e.g., mvc-generator, tir-test-generator]
 
 ---
@@ -140,7 +139,6 @@ T8 → T9
 
 **Tools**:
 
-- MCP: `language-system-docs-search` (or NONE)
 - Skill: NONE
 
 **Done when**:
@@ -164,7 +162,6 @@ T8 → T9
 
 **Tools**:
 
-- MCP: `language-system-docs-search`, `code-search`
 - Skill: `mvc-generator`
 
 **Done when**:

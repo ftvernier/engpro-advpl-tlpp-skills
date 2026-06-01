@@ -17,13 +17,12 @@ If the feature involves unfamiliar technology, patterns, or integrations, resear
 Follow the **Knowledge Verification Chain** (see SKILL.md) in strict order:
 
 ```
-Codebase → Project docs → TOTVS MCPs (language-system-docs-search,
-           code-search) → Web search (TDN) → Flag as uncertain
+Codebase → Project docs → Web search (TDN) → Flag as uncertain
 ```
 
 **CRITICAL: NEVER assume or fabricate information.** If you can't find an answer through the chain, explicitly say "I don't know" or "I couldn't find documentation for this". Inventing an API, pattern, or behavior that doesn't exist is far worse than admitting uncertainty. Wrong assumptions cascade through design → tasks → implementation.
 
-**Validate ALL external symbols** (FW*/TC*/MS* classes, `xFilial`, `RetSqlName` functions, etc.) in the TOTVS MCPs before writing any call.
+**Validate ALL external symbols** (FW*/TC*/MS* classes, `xFilial`, `RetSqlName` functions, etc.) before writing any call.
 
 Good triggers for research: new framework classes, REST APIs, patterns not used in this codebase before, security-sensitive features.
 
