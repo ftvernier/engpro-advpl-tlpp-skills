@@ -98,6 +98,20 @@ Local nVal  as Number            // use Numeric
 Local lOk   as Boolean           // use Logical
 ```
 
+Every function or method **must** follow this order, without exception:
+
+```advpl
+User Function MyFunction()     // 1. header
+    Local  cVar := ""          // 2. Local  variables (all here)
+    Private cPriv := ""        // 3. Private variables (all here)
+    // executable code          // 4. logic
+Return xValue                  // 5. Return
+```
+
+- **All** `Local` declarations come before any executable line of code.
+- **All** `Private` declarations come right after the `Local` ones, still before the code.
+- Never declare `Local` or `Private` in the middle of the flow (inside `If`, `For`, after a function call, etc.).
+
 #### Class & Method Syntax Rules (AdvPL/TLPP)
 
 AdvPL/TLPP has a **two-part** class structure: the **declaration** (inside `class`/`endclass`) and the **implementation** (outside, after `endclass`). The syntax rules differ between these two parts and are unique compared to other languages (Java, C#, TypeScript).
@@ -171,9 +185,9 @@ class View
     static method showCopia(cFilial as character, cCod as character)      // WRONG
 endclass
 
-// ═════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // CORRECT: empty () in declaration; params and return type in implementation
-// ═════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 class View
     static method showConsulta()   // CORRECT — only empty () in the declaration
     static method showCopia()      // CORRECT
@@ -186,7 +200,7 @@ method showCopia(cFilial as character, cCod as character) class View      // par
 return
 ```
 
-> **Source**: Official TOTVS TDN documentation — "Estrutura" (pageId 821588162), "Método Estático" (pageId 334341656), "Declaração de herança" (pageId 822220426). Validated via `language-system-docs-search` MCP.
+> **Source**: Official TOTVS TDN documentation — "Estrutura" (pageId 821588162), "Método Estático" (pageId 334341656), "Declaração de herança" (pageId 822220426).
 
 ### Include Files
 
@@ -274,12 +288,9 @@ The most common cause of `Cannot find method ...` and `Class not found ...` runt
 Validation procedure:
 
 1. **Identify every external symbol** in the planned code: classes (`FWFormModel`, ...), methods (`getOperation`, ...), functions (`xFilial`, `RetSqlName`, `FwAliasInDic`, ...), and global namespaces.
-2. **Lookup each symbol** in the appropriate MCP — the source of truth — before writing the call:
-   - `language-system-docs-search` → AdvPL/TLPP framework classes/functions (FW*, Tc*, MV*, MS*, etc.).
-   - `tir-docs-search` → TIR (Python) APIs.
-   - `code-search` → real codebase usage examples to confirm signatures and patterns when documentation is ambiguous.
-3. **Skill references and code examples are also authoritative**: a symbol is considered valid if it appears in the body, templates, or code examples of any `.agents/skills/**/references/*.md` or `.agents/skills/**/SKILL.md` file, even when the MCP documentation does not return it. Some real framework APIs are undocumented on TDN but are demonstrated in skill references and used by production code; treat skill references and MCP documentation as complementary sources.
-4. **Reject symbols not returned by the MCP and not present in any skill reference or example**. If no documented alternative exists in either source, document the gap (see Completeness Verification §1) instead of inventing a call.
+2. **Lookup each symbol** in the official TOTVS documentation (TDN — tdn.totvs.com) or in the actual codebase before writing the call. Confirm signatures and patterns through real usage examples when documentation is ambiguous.
+3. **Skill references and code examples are also authoritative**: a symbol is considered valid if it appears in the body, templates, or code examples of any `.agents/skills/**/references/*.md` or `.agents/skills/**/SKILL.md` file. Some real framework APIs are undocumented on TDN but are demonstrated in skill references and used by production code; treat skill references and codebase examples as complementary sources.
+4. **Reject symbols not found in official documentation, codebase, or skill references**. If no documented alternative exists, document the gap (see Completeness Verification §1) instead of inventing a call.
 5. **Validate the full signature** (parameter order, types, default values, return type) against the documented contract or skill example. Do not assume parameters are optional unless the source states so.
 6. **Validate execution context**: a method that exists may still be invalid in the chosen context. Confirm the lifecycle in the documentation or in the skill reference.
 7. **For migrations**, never assume a legacy symbol was ported under the same name into the new framework. Each symbol used in the migrated output must be independently validated against the **target** framework's documentation or skill references, not the source framework's.
@@ -323,11 +334,13 @@ See [.agents/skills/references-skills-reference.md](.agents/skills/references-sk
 
 | Category | Skills |
 |----------|--------|
-| **Code Generation** | `mvc-generator`, `tlpp-rest-endpoint-generator`, `fwrest-client-generator`, `entry-point-designer`, `query-builder` |
+| **Code Generation** | `mvc-generator`, `tlpp-rest-endpoint-generator`, `entry-point-designer`, `query-builder` |
 | **Migration** | `advpl-to-tlpp-migration` |
-| **Quality** | `code-review`, `sql-code-review`, `refactor`, `refactor-method-complexity-reduce`, `sql-optimization`, `utf8-to-cp1252-conversion` |
+| **Quality** | `code-review`, `sql-code-review`, `refactor`, `refactor-method-complexity-reduce`, `sql-optimization` |
 | **Tests** | `tir-test-generator` |
+| **Build & Compilation** | `advpl-tlpp-compile` |
 | **Documentation & Planning** | `documentation-writer`, `context-map`, `create-implementation-plan`, `data-dictionary-lookup`, `advpl-tlpp-sdd` |
+
 
 ---
 
@@ -337,68 +350,18 @@ All new code must include a `/*/{Protheus.doc}` block with at minimum: `@type`, 
 
 ---
 
-## MCP to consult documentation
-
-> **Search language**: All queries to the documentation MCPs must be made in **Brazilian Portuguese**, as all documentation is in that language. Exception: programming terms, code identifiers (variable names, functions, classes, methods), and technical abbreviations that follow English conventions — these should be kept in their original language. Example: search *"como usar FWFormModel para validação de campos"* and not *"how to use FWFormModel for field validation"*.
-
-### When to consult the MCPs
-
-**MUST** use `advpl-tlpp-mcp-docs` MCPs to consult documentation **always before performing any task** — including implementation, refactoring, bug fixing, code review, planning, tests or any other development activity. You MUST use them to verify documentation, data structures, parameters, and API behavior prior to proceeding, regardless of your confidence level. The table below defines which MCP to use in each situation:
-
-| Need | Recommended MCP tool(s) |
-|------|---------------------|
-| Documentation for AdvPL/TLPP functions, classes, methods, or frameworks | `language-system-docs-search` |
-| Documentation for Protheus modules, routines, Entry Points, or tables | `product-docs-search` |
-| Implementation examples of existing features in the source code | `code-search` (+ `get-code-chunks` for complete code) |
-| Data dictionary lookup (table structure, fields, types, indexes) | `execute-sql`, `list-schemas`, `list-objects`, `get-object-details` |
-| System parameters (SX6) used by a routine | `program-parameters-search` |
-| Functions called by a program | `called-functions-by-programs-search` |
-| Preprocessor directives (`#include`, `#define`) of a source file | `get-file-preprocessor` |
-| TIR tests (end-to-end Python) | `tir-docs-search` |
-| TSS (NF-e, NFS-e, CT-e, e-Social, REINF, SEFAZ) | `tss-docs-search` |
-| Reports (Smart View, TReport) | `reports-docs-search` |
-| Legislation (tax, labor, SPED, ConSeg) | `legislation-docs-search` |
-| Cloud / TCloud | `cloud-docs-search` |
-| MIT / Services Framework | `mit-docs-search` |
-| External libraries / APIs | `ref`, `context7 / ups` |
-
-**Usage guidelines:**
-
-1. **MCPs are the source of truth — always consult them first**: Before searching the codebase (regex, `grep_search`, `semantic_search`, `file_search`) or reading source files for examples, **always query the relevant MCP first**. Codebase searches are a last resort when MCP results are insufficient, not a starting point.
-2. **Never use codebase searches as a substitute for MCP lookups**: Do not search the workspace for examples of a Protheus API, framework class, table structure, or system behavior. Use `code-search`, `language-system-docs-search`, `product-docs-search`, or the appropriate MCP instead. Direct source code exploration is only valid for project-specific logic not covered by any MCP.
-3. **Prefer MCPs over internal knowledge**: The official documentation and the Protheus source code indexed by the MCPs are the authoritative reference for API behavior, parameters, and data structures. Internal model knowledge must never override MCP results.
-4. **Combine multiple MCPs** when the task requires it. For example, when implementing an MVC routine: consult `product-docs-search` for the routine's documentation, `code-search` for existing examples, `execute-sql` or `get-object-details` for the structure of the involved tables, and `program-parameters-search` for the parameters used.
-5. **Consult before generating code**: MCP lookups must happen **before** code generation, not after. The generated code must reflect the information obtained.
-6. **Document the source**: when citing information obtained via MCP (parameters, fields, behaviors), mention that the information was validated against the official documentation.
-7. **MUST** use `execute-sql`, `list-schemas`, `list-objects`, `get-object-details` to look up table aliases, field names, relationships, and metadata required for the model definition before making any implementation decisions. This is critical to ensure the generated code correctly references existing database structures and adheres to the actual data model.
-
-### MCP Combination Patterns
-
-Most tasks require **multiple MCPs** working together. Follow these patterns:
-
-| Task Type | Step 1 (Data) | Step 2 (Documentation) | Step 3 (Examples) |
-|-----------|---------------|------------------------|-------------------|
-| **Code generation** (MVC, REST) | `execute-sql` → table structure, fields, indexes | `language-system-docs-search` → framework API, class methods | `code-search` → existing implementations for reference |
-| **SQL / Query building** | `execute-sql` → SIX indexes, SX3 field types/sizes | `language-system-docs-search` → FWExecStatement (preferred), TCQuery docs | `code-search` → query patterns in codebase |
-| **Migration / Refactoring** | `execute-sql` → dictionary impact (fields, triggers, indexes) | `product-docs-search` → routine behavior, Entry Points | `code-search` + `called-functions-by-programs-search` → callers, dependencies |
-| **Code review** | `execute-sql` → validate field/table references | `language-system-docs-search` → correct API usage | `code-search` → reference patterns for comparison |
-| **Test generation** | `execute-sql` → table fields for test data | `tir-docs-search` → TIR test framework | `code-search` → existing test patterns |
-| **Documentation** | `execute-sql` → table/field metadata | `language-system-docs-search` + `product-docs-search` → signatures, behavior | — |
-
-**Rule**: When in doubt, always start with `execute-sql` for concrete data (fields, types, indexes), then use search tools for context and documentation.
-
-### Fallback Escalation Chain
+## Fallback Escalation Chain
 
 When information is not found in one source, escalate to the next:
 
 ```
-1. MCP tools (primary source of truth)
+1. Codebase — existing code, conventions, and patterns in the project
    ↓ not found or insufficient
 2. Skill reference files (references/*.md bundled with each skill)
    ↓ not found or insufficient
 3. AGENTS.md / CLAUDE.md rules (global conventions)
    ↓ not found or insufficient
-4. Ask the user for clarification — NEVER guess or fabricate
+4. Official TOTVS documentation (TDN — tdn.totvs.com) and trusted web sources
+   ↓ not found or insufficient
+5. Ask the user for clarification — NEVER guess or fabricate
 ```
-
-**Never skip steps**. Even if you believe you know the answer, validate against MCP documentation first. Internal knowledge is unreliable for Protheus-specific APIs, data dictionary structures, and framework behaviors.

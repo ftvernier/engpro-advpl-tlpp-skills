@@ -71,7 +71,7 @@ File name must be the Entry Point name in uppercase + language extension. No nam
 1. Confirm the Entry Point name (e.g., `MT410INC`, `A010TOK`)
 2. Identify the standard routine and module (e.g., MATA410, SIGAFAT)
 3. Determine the trigger moment (before validation, after save, grid processing, etc.)
-4. Consult TDN or MCP tools to confirm PARAMIXB layout and return type
+4. Consult TDN to confirm PARAMIXB layout and return type
 
 ### Step 2 — Design the PARAMIXB Interface
 
